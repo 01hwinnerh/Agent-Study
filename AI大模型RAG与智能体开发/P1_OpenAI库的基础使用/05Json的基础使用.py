@@ -1,0 +1,37 @@
+import json
+
+d = {
+    "name":"周杰伦",
+    "age":"11",
+    "gender":"男"
+}
+s = json.dumps(d,ensure_ascii=False)    #python字典转为json对象
+print(s)
+
+l = [
+    {
+        "name": "周杰伦",
+        "age": "11",
+        "gender": "男"
+    },
+    {
+        "name": "蔡依林",
+        "age": "12",
+        "gender": "女"
+    },
+    {
+        "name": "小明",
+        "age": "110",
+        "gender": "男"
+    }
+]
+print(json.dumps(l,ensure_ascii=False))     #python列表转为json数组
+
+json_str = '{"name": "周杰伦", "age": "11", "gender": "男"}'
+json_array_str = '[{"name": "周杰伦", "age": "11", "gender": "男"}, {"name": "蔡依林", "age": "12", "gender": "女"}, {"name": "小明", "age": "110", "gender": "男"}]'
+
+res_dict = json.loads(json_str)
+print(res_dict,type(res_dict))          #json对象转为python字典
+
+res_list = json.loads(json_array_str)
+print(res_list,type(res_list))          #json数组转为python列表（内套字典）
