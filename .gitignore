@@ -1,0 +1,9 @@
+# 忽略 Chroma 向量数据库目录
+chroma_db/
+# 或者精确匹配文件
+*chroma.sqlite3
+*.bin
+
+# 忽略 IDE 配置
+.idea/
+*.iml
