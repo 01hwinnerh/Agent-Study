@@ -10,6 +10,7 @@
 """
 # ====================== 基础库导入 ======================
 import os  # 操作系统路径/文件处理
+from pathlib import Path  # ✅ 新增：用于构建绝对路径
 # LangChain Chroma向量库核心类：用于创建/操作向量库
 from langchain_chroma import Chroma
 # LangChain核心文档类：统一文档格式（page_content+metadata）
@@ -39,11 +40,20 @@ class VectorStoreService:
         1. 创建Chroma向量库实例（绑定嵌入模型、存储目录、集合名）
         2. 初始化文本分块器（按chroma.yml配置的分块规则）
         """
-        # 1. 初始化Chroma向量库
+        # ✅ 关键修改1：获取当前文件（vector_store.py）的绝对目录（rag/目录）
+        self.current_dir = Path(__file__).parent
+        # ✅ 关键修改2：将配置中的相对路径转为基于rag/目录的绝对路径
+        # 向量库存储路径：rag/ + chroma_conf["persist_directory"]
+        self.persist_dir_abs = self.current_dir / chroma_conf["persist_directory"]
+        # ✅ 关键修改3：提前转换其他配置路径为绝对路径（避免后续调用时路径错误）
+        self.data_path_abs = self.current_dir / chroma_conf["data_path"]
+        self.md5_store_abs = self.current_dir / chroma_conf["md5_hex_store"]
+
+        # 1. 初始化Chroma向量库（使用绝对路径）
         self.vector_store = Chroma(
             collection_name=chroma_conf["collection_name"],  # 向量库集合名（如"rag_knowledge"）
             embedding_function=embed_model,  # 嵌入模型（将文本转为向量）
-            persist_directory=chroma_conf["persist_directory"],  # 向量库本地存储路径（如"chroma_db"）
+            persist_directory=str(self.persist_dir_abs),  # ✅ 改用绝对路径
         )
 
         # 2. 初始化文本分块器（RecursiveCharacterTextSplitter：递归字符分块，优先按分隔符切分）
@@ -85,8 +95,8 @@ class VectorStoreService:
             返回：
                 bool: True（已处理/已加载），False（未处理/未加载）
             """
-            # 获取MD5记录文件的绝对路径
-            md5_store_path = get_abs_path(chroma_conf["md5_hex_store"])
+            # ✅ 修改：使用提前转换的绝对路径
+            md5_store_path = str(self.md5_store_abs)
 
             # 如果MD5记录文件不存在，创建空文件并返回False（首次加载）
             if not os.path.exists(md5_store_path):
@@ -109,7 +119,8 @@ class VectorStoreService:
             参数：
                 md5_for_check: 已处理文件的MD5十六进制字符串
             """
-            md5_store_path = get_abs_path(chroma_conf["md5_hex_store"])
+            # ✅ 修改：使用提前转换的绝对路径
+            md5_store_path = str(self.md5_store_abs)
             # 以追加模式写入（a），避免覆盖已有记录
             with open(md5_store_path, "a", encoding="utf-8") as f:
                 f.write(md5_for_check + "\n")
@@ -133,7 +144,7 @@ class VectorStoreService:
         # ====================== 核心执行流程 ======================
         # 1. 筛选数据目录下允许的文件（PDF/TXT）
         allowed_files_path: list[str] = listdir_with_allowed_type(
-            get_abs_path(chroma_conf["data_path"]),  # 数据目录绝对路径（如"docs/knowledge"）
+            str(self.data_path_abs),  # ✅ 修改：使用绝对路径
             tuple(chroma_conf["allow_knowledge_file_type"]),  # 允许的文件类型（如(".pdf", ".txt")）
         )
 
@@ -184,6 +195,9 @@ class VectorStoreService:
 if __name__ == '__main__':
     # 1. 初始化向量库服务
     vs = VectorStoreService()
+    # ✅ 新增测试打印：确认绝对路径是否正确
+    logger.info(f"向量库存储绝对路径：{vs.persist_dir_abs}")
+    logger.info(f"知识库文件目录绝对路径：{vs.data_path_abs}")
 
     # 2. 加载指定目录下的文件到向量库（自动去重）
     vs.load_document()
