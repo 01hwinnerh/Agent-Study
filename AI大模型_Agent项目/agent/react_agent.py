@@ -18,7 +18,7 @@ from utils.prompt_loader import load_system_prompts  # 加载系统主提示词
 # 导入所有Agent可调用的工具函数
 from agent.tools.agent_tools import (
     rag_summarize, get_weather, get_user_location, get_user_id,
-    get_current_month, fetch_external_data, fill_context_for_report
+    get_current_month, fetch_external_data, fill_context_for_report, web_search
 )
 # 导入Agent中间件（工具监控、模型前日志、动态提示词切换）
 from agent.tools.middleware import monitor_tool, log_before_model, report_prompt_switch
@@ -53,7 +53,8 @@ class ReactAgent:
                 get_user_id,  # 获取用户ID
                 get_current_month,  # 获取当前月份
                 fetch_external_data,  # 获取用户月度使用记录
-                fill_context_for_report  # 触发报告场景上下文注入
+                fill_context_for_report,  # 触发报告场景上下文注入
+                web_search,
             ],
             # 绑定中间件（按顺序执行：工具监控→模型前日志→动态提示词切换）
             middleware=[monitor_tool, log_before_model, report_prompt_switch],
