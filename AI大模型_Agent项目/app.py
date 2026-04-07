@@ -58,8 +58,8 @@ if prompt:
         # 使用 Streamlit 的流式写入功能，实时显示 AI 回答（右侧气泡）
         st.chat_message("assistant").write_stream(capture(res_stream, response_messages))
 
-        # 将 AI 的完整回答（取缓存列表最后一个 chunk，通常为最终完整回复）存入历史
-        st.session_state["message"].append({"role": "assistant", "content": response_messages[-1]})
+        # 将 AI 的完整回答存入历史
+        st.session_state["message"].append({"role": "assistant", "content": "".join(response_messages)})
 
         # 强制重新运行整个脚本（刷新页面状态，确保新消息立即显示且输入框清空）
         st.rerun()
